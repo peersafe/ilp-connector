@@ -191,16 +191,13 @@ class RouteBuilder {
       // Verify expectedFinalAmount ≤ actualFinalAmount
       // As long as the fxSpread > slippage, the connector won't lose money.
       const expectedFinalAmount = new BigNumber(ilpPacket.amount).times(1 - this.slippage)
-      if (expectedFinalAmount.greaterThan(nextHop.finalAmount)) {
-        throw new IncomingTransferError(ilpErrors.R01_Insufficient_Source_Amount({
-          message: 'Payment rate does not match the rate currently offered'
-        }))
+      if (expectedFinalAmount.lessThanOrEqualTo(nextHop.finalAmount)) {
+        nextHop.destinationAmount = ilpPacket.amount
       }
+      nextHop.destinationCreditAccount = ilpPacket.account
       // TODO: Verify atomic mode notaries are trusted
       // TODO: Verify expiry is acceptable
 
-      nextHop.destinationCreditAccount = ilpPacket.account
-      nextHop.destinationAmount = ilpPacket.amount
     }
 
     const noteToSelf = {
